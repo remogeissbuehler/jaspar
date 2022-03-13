@@ -18,3 +18,5 @@ class PositionalOrKeywordMode(Enum):
     SMART_COMPROMISE = 1
 
 POSITIONAL_OR_KEYWORD_MODE = PositionalOrKeywordMode.SMART_COMPROMISE
+
+IGNORE_REGEX = "^_.*"

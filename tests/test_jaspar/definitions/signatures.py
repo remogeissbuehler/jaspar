@@ -186,12 +186,14 @@ class PositionalAndKwReqOpt(SignatureTestCase):
 
 
 class VarPosAndVarKw(SignatureTestCase):
+    # TODO: think about what this should do
     @staticmethod
     def signature(*args, **kwargs):
         pass
 
 
 class VarPosAndKwReqAndVarKw(SignatureTestCase):
+    # TODO: think about what this should even do
     @staticmethod
     def signature(*args, req, **kwargs):
         pass

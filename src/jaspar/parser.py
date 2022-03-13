@@ -2,8 +2,9 @@ from enum import Enum
 import inspect
 from argparse import ArgumentParser
 from inspect import _ParameterKind
-from typing import Callable
-from venv import create
+from typing import Callable, Optional
+import re
+
 
 from . import config as C
 from . import actions as A
@@ -34,7 +35,6 @@ def create_argument(
         g.add_argument("--" + name, action=A.StoreOnce, **options)
         g.add_argument(name, nargs="?", action=A.StoreOnce, **options)
         
-
 
 def parse_parameter(
     parser: ArgumentParser,
@@ -99,12 +99,37 @@ def parse_signature(parser: ArgumentParser, signature: inspect.Signature):
 
 
 def parse_main_function(parser: ArgumentParser, f: Callable):
-    raise NotImplementedError()
+    signature = inspect.signature(f)
+    parse_signature(parser, signature)
+
+    return parser
 
 
-def parse_subcommand_function(parser: ArgumentParser, f: Callable):
-    raise NotImplementedError()
+def parse_subcommand_function(subparsers: ArgumentParser, f: Callable):
+    signature = inspect.signature(f)
+    name = f.__name__
 
+    subparser = subparsers.add_subparser(name)
+    subparser.set_defaults(_func=f)
+    parse_signature(signature)
 
-def parse_function(parser: ArgumentParser, f: Callable):
-    raise NotImplementedError()
+    return subparsers
+
+def parse_function(
+    parser: ArgumentParser,
+    subparsers: Optional[ArgumentParser],
+    f: Callable,
+    main: bool = False
+):
+    if f.__name__ in ["main", "default"] or main:
+        parse_main_function(parser, f)
+        return parser
+    
+    parse_subcommand_function(subparsers, f)
+
+def parse_module(module):
+    functions = filter(inspect.isfunction, inspect.getmembers(module))
+    functions = filter(lambda f: not re.match(C.IGNORE_REGEX, f.__name__))
+
+    
+
