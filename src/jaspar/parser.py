@@ -22,7 +22,7 @@ def create_argument(
     **options
 ):
     if arg_type == CmdLineArgType.POSTIONAL:
-        if options.pop("required", False) and 'nargs' not in options:
+        if not options.pop("required", True) and 'nargs' not in options:
             options['nargs'] = '?'
 
         parser.add_argument(name, **options)
