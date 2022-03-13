@@ -29,9 +29,11 @@ def create_argument(
     elif arg_type == CmdLineArgType.FLAG:
         parser.add_argument("--" + name, **options)
     else:
-        g = parser.add_mutually_exclusive_group(options.get("required", False))
-        g.add_argument(name, nargs="?", action=A.StoreOnce)
-        g.add_argument("--" + name, action=A.StoreOnce)
+        g = parser.add_mutually_exclusive_group(required=options.get("required", False))
+        options.pop("required", None)
+        g.add_argument("--" + name, action=A.StoreOnce, **options)
+        g.add_argument(name, nargs="?", action=A.StoreOnce, **options)
+        
 
 
 def parse_parameter(
@@ -68,7 +70,7 @@ def parse_parameter(
             arg_type = CmdLineArgType.POSTIONAL
 
         if create_both:
-            arg_type = CmdLineArgType.POSTIONAL
+            arg_type = CmdLineArgType.BOTH
 
     options = dict()
 

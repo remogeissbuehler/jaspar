@@ -13,7 +13,6 @@ class StoreOnce(argparse.Action):
     """
 
     def __call__(self, parser, namespace, values, option_string=None):
-        print(namespace, values)
         if getattr(namespace, self.dest, self.default) == self.default:
             # only set if the value is currently the default
             setattr(namespace, self.dest, values)
