@@ -1,44 +1,94 @@
+from enum import Enum
 import inspect
 from argparse import ArgumentParser
 from inspect import _ParameterKind
 from typing import Callable
 
+from . import config as C
+from . import actions as A
 
-def parse_parameter(parser: ArgumentParser, param: inspect.Parameter):
-    name = param.name
-    is_required = param.default == inspect._empty
-    is_positional = param.kind in [
+
+class CmdLineArgType(Enum):
+    POSTIONAL = 0b01
+    FLAG = 0b10
+    BOTH = 0b11
+
+
+def create_argument(
+    parser: ArgumentParser,
+    arg_type: CmdLineArgType,
+    name: str,
+    **options
+): 
+    if arg_type == CmdLineArgType.POSTIONAL:
+        if options.pop("required", False):
+            options['nargs'] = '?'
+
+        parser.add_argument(name, **options)
+    elif arg_type == CmdLineArgType.FLAG:
+        parser.add_argument("--" + name, **options)
+    else:
+        g = parser.add_mutually_exclusive_group(options.get("required", False))
+        g.add_argument(name, nargs="?", action=A.StoreOnce)
+        g.add_argument("--" + name, action=A.StoreOnce)
+    
+    
+
+def parse_parameter(
+    parser: ArgumentParser,
+    param: inspect.Parameter,
+    create_both: bool
+) -> None:
+    """Takes the signature of a function and adds the parameters to the parser.
+
+    Example: Takes a parameter "b = None" and does `parser.add_argument("--b", default=None)`
+
+    :param parser: The parser to add the parameter to
+    :type parser: ArgumentParser
+    :param param: The parameter of the function signature with its properties.
+    :type param: inspect.Parameter
+    :param create_both: Whether or not to create both a positional and a flag argument 
+                        for a POSITIONAL_OR_KEYWORD parameter.
+    """
+    name = param.name.replace("_", "-")
+    has_default = param.default == inspect._empty
+
+    arg_type = None
+    if param.kind == _ParameterKind.KEYWORD_ONLY:
+        arg_type = CmdLineArgType.FLAG
+    elif param.kind in [
         _ParameterKind.POSITIONAL_ONLY,
-        _ParameterKind.POSITIONAL_OR_KEYWORD,
         _ParameterKind.VAR_POSITIONAL
-    ]
-    is_varpos = param.kind == _ParameterKind.VAR_POSITIONAL
-
-    becomes_flag = not is_required or not is_positional
-    if becomes_flag:
-        name = "--" + name
-
+    ]:
+        arg_type = CmdLineArgType.POSTIONAL
+    elif param.kind == _ParameterKind.POSITIONAL_OR_KEYWORD:
+        if has_default:
+            arg_type = CmdLineArgType.FLAG
+        else:
+            arg_type = CmdLineArgType.POSTIONAL
+        
+        if create_both:
+            arg_type = CmdLineArgType.POSTIONAL
+    
     options = dict()
 
     # take default argument if present
     options['default'] = None if param.default == inspect._empty else param.default
-    
+
     # required can only be set for flags, i.e. non-positional arguments
     if becomes_flag:
         options['required'] = is_required or not becomes_flag
 
     if is_varpos:
         options['nargs'] = '*'
-    
 
-    parser.add_argument(name, **options)
-    
+    create_argument(parser, arg_type, name, **options)
 
 
 def parse_signature(parser: ArgumentParser, signature: inspect.Signature):
     for param in signature.parameters.values():
         parse_parameter(parser, param)
-    
+
     return parser
 
 

@@ -9,7 +9,7 @@ from . import definitions as defs
 
 @pytest.mark.parametrize(
     "signature_fct,reference_parser,inputs",
-    defs.signatures.DATA
+    defs.signatures.get_data()
 )
 def test_parse_signature(signature_fct, reference_parser, inputs, capfd):
     signature = inspect.signature(signature_fct)
@@ -27,3 +27,19 @@ def test_parse_signature(signature_fct, reference_parser, inputs, capfd):
     args = parser.parse_args(inputs)
 
     assert reference_args == args
+
+@pytest.mark.parametrize(
+    "signature_fct,reference_parser",
+    defs.signatures.get_data(inputs=False)
+)
+def test_parse_signature_help_message(signature_fct, reference_parser, capfd):
+    signature = inspect.signature(signature_fct)
+    parser = jp.parse_signature(ArgumentParser(), signature)
+
+    reference_parser.print_help()
+    ref = capfd.readouterr()
+
+    parser.print_help()
+    actual = capfd.readouterr()
+
+    assert ref == actual
