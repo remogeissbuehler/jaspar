@@ -3,6 +3,7 @@ import inspect
 from argparse import ArgumentParser
 from inspect import _ParameterKind
 from typing import Callable
+from venv import create
 
 from . import config as C
 from . import actions as A
@@ -19,9 +20,9 @@ def create_argument(
     arg_type: CmdLineArgType,
     name: str,
     **options
-): 
+):
     if arg_type == CmdLineArgType.POSTIONAL:
-        if options.pop("required", False):
+        if options.pop("required", False) and 'nargs' not in options:
             options['nargs'] = '?'
 
         parser.add_argument(name, **options)
@@ -31,8 +32,7 @@ def create_argument(
         g = parser.add_mutually_exclusive_group(options.get("required", False))
         g.add_argument(name, nargs="?", action=A.StoreOnce)
         g.add_argument("--" + name, action=A.StoreOnce)
-    
-    
+
 
 def parse_parameter(
     parser: ArgumentParser,
@@ -51,7 +51,7 @@ def parse_parameter(
                         for a POSITIONAL_OR_KEYWORD parameter.
     """
     name = param.name.replace("_", "-")
-    has_default = param.default == inspect._empty
+    has_default = param.default != inspect._empty
 
     arg_type = None
     if param.kind == _ParameterKind.KEYWORD_ONLY:
@@ -66,28 +66,32 @@ def parse_parameter(
             arg_type = CmdLineArgType.FLAG
         else:
             arg_type = CmdLineArgType.POSTIONAL
-        
+
         if create_both:
             arg_type = CmdLineArgType.POSTIONAL
-    
+
     options = dict()
 
     # take default argument if present
-    options['default'] = None if param.default == inspect._empty else param.default
+    options['default'] = None if not has_default else param.default
+    options['required'] = not has_default
 
-    # required can only be set for flags, i.e. non-positional arguments
-    if becomes_flag:
-        options['required'] = is_required or not becomes_flag
-
-    if is_varpos:
+    if param.kind == _ParameterKind.VAR_POSITIONAL:
         options['nargs'] = '*'
 
     create_argument(parser, arg_type, name, **options)
 
 
 def parse_signature(parser: ArgumentParser, signature: inspect.Signature):
+    has_positional_only = any(
+        param.kind == _ParameterKind.POSITIONAL_ONLY
+        for param in signature.parameters.values()
+    )
+
+    create_both = C.POSITIONAL_OR_KEYWORD_MODE == C.PositionalOrKeywordMode.STRICT
+    create_both = create_both or has_positional_only
     for param in signature.parameters.values():
-        parse_parameter(parser, param)
+        parse_parameter(parser, param, create_both)
 
     return parser
 

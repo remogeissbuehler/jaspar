@@ -16,3 +16,5 @@ class PositionalOrKeywordMode(Enum):
     # case we assume the user explicitly wants to differentiate.
     # In that case they are treated as both.
     SMART_COMPROMISE = 1
+
+POSITIONAL_OR_KEYWORD_MODE = PositionalOrKeywordMode.SMART_COMPROMISE
