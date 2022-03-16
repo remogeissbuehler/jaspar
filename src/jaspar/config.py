@@ -20,3 +20,5 @@ class PositionalOrKeywordMode(Enum):
 POSITIONAL_OR_KEYWORD_MODE = PositionalOrKeywordMode.SMART_COMPROMISE
 
 IGNORE_REGEX = "^_.*"
+
+MAIN_FUNCTION_NAMES = ["main", "default"]

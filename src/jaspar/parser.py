@@ -1,5 +1,6 @@
 from enum import Enum
 import inspect
+import itertools
 from argparse import ArgumentParser
 from inspect import _ParameterKind
 from typing import Callable, Optional
@@ -102,6 +103,8 @@ def parse_main_function(parser: ArgumentParser, f: Callable):
     signature = inspect.signature(f)
     parse_signature(parser, signature)
 
+    parser.set_defaults(_func=f)
+
     return parser
 
 
@@ -121,15 +124,35 @@ def parse_function(
     f: Callable,
     main: bool = False
 ):
-    if f.__name__ in ["main", "default"] or main:
+    if f.__name__ in C.MAIN_FUNCTION_NAMES or main:
         parse_main_function(parser, f)
         return parser
     
     parse_subcommand_function(subparsers, f)
 
-def parse_module(module):
-    functions = filter(inspect.isfunction, inspect.getmembers(module))
-    functions = filter(lambda f: not re.match(C.IGNORE_REGEX, f.__name__))
+
+def parse_module(module) -> ArgumentParser:
+    functions = (obj for _, obj in inspect.getmembers(module))
+    functions = filter(inspect.isfunction, functions)
+    functions = filter(lambda f: not re.match(C.IGNORE_REGEX, f.__name__), functions)
+    functions = filter(lambda f: f.__module__ == module.__name__, functions)
+
+    functions, func2, func3 = itertools.tee(functions, 3)
+
+    has_subcommands = any(f.__name__ not in C.MAIN_FUNCTION_NAMES for f in func2)
+    parser = ArgumentParser()
+
+    signatures = dict((f.__module__ + "." + f.__name__, inspect.signature(f)) for f in func3)
+
+    subparsers = None
+    if has_subcommands:
+        subparsers = parser.add_subparsers()
+    for f in functions:
+        parse_function(parser, subparsers, f)
+
+    return parser, signatures
+
+
 
     
 
