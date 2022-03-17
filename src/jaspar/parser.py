@@ -112,9 +112,9 @@ def parse_subcommand_function(subparsers: ArgumentParser, f: Callable):
     signature = inspect.signature(f)
     name = f.__name__
 
-    subparser = subparsers.add_subparser(name)
+    subparser = subparsers.add_parser(name)
     subparser.set_defaults(_func=f)
-    parse_signature(signature)
+    parse_signature(subparser, signature)
 
     return subparsers
 
@@ -131,23 +131,34 @@ def parse_function(
     parse_subcommand_function(subparsers, f)
 
 
+def _get_functions_generator(module):
+    def generator():
+        functions = (obj for _, obj in inspect.getmembers(module))
+        functions = filter(inspect.isfunction, functions)
+        functions = filter(lambda f: not re.match(C.IGNORE_REGEX, f.__name__), functions)
+        functions = filter(lambda f: f.__module__ == module.__name__, functions)
+
+        return functions
+
+    return generator
+
 def parse_module(module) -> ArgumentParser:
-    functions = (obj for _, obj in inspect.getmembers(module))
-    functions = filter(inspect.isfunction, functions)
-    functions = filter(lambda f: not re.match(C.IGNORE_REGEX, f.__name__), functions)
-    functions = filter(lambda f: f.__module__ == module.__name__, functions)
+    functions = _get_functions_generator(module)
 
-    functions, func2, func3 = itertools.tee(functions, 3)
-
-    has_subcommands = any(f.__name__ not in C.MAIN_FUNCTION_NAMES for f in func2)
+    has_subcommands = any(f.__name__ not in C.MAIN_FUNCTION_NAMES for f in functions())
     parser = ArgumentParser()
 
-    signatures = dict((f.__module__ + "." + f.__name__, inspect.signature(f)) for f in func3)
+    signatures = dict((f.__module__ + "." + f.__name__, inspect.signature(f)) for f in functions())
 
     subparsers = None
     if has_subcommands:
-        subparsers = parser.add_subparsers()
-    for f in functions:
+        has_default = any(f.__name__ in C.MAIN_FUNCTION_NAMES for f in functions())
+        options = {}
+        if not has_default:
+            options['required'] = True
+            options['dest'] = "command"
+        subparsers = parser.add_subparsers(**options)
+    for f in functions():
         parse_function(parser, subparsers, f)
 
     return parser, signatures
