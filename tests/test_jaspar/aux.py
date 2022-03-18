@@ -1,5 +1,7 @@
-from typing import Callable
+from argparse import ArgumentParser
+from typing import Callable, List
 
+import pytest
 
 def add_data_to_fct(**kwargs):
     """Adds data to a function.
@@ -22,8 +24,24 @@ def add_data_to_fct(**kwargs):
     
     return decorator
 
+
 def hasattrs(obj, *attrs):
     for attr in attrs:
         if not hasattr(obj, attr): return False
 
     return True
+
+
+def compare_parsers(parser: ArgumentParser, reference: ArgumentParser, inputs: List[str], capfd):
+    try:
+        reference_args = reference.parse_args(inputs)
+    except SystemExit:
+        ref_captured = capfd.readouterr()
+        with pytest.raises(SystemExit):
+            parser.parse_args(inputs)
+            assert capfd.readouterr() == ref_captured
+        return
+
+    args = parser.parse_args(inputs)
+
+    assert reference_args == args
