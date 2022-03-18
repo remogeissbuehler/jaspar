@@ -33,14 +33,7 @@ def _get_reference_parser():
     parser = ArgumentParser()
 
     subp = parser.add_subparsers(required=True, dest="_command") 
-    test_ = subp.add_parser("test")
-    test_.set_defaults(_func=test)
-
-    repeat_ = subp.add_parser("repeat")
-    repeat_.add_argument("n")
-    repeat_.add_argument("--horizontal", default=False)
-    repeat_.set_defaults(_func=repeat)
-
+    
     copy_ = subp.add_parser("copy")
     copy_.add_argument("source")
     copy_.add_argument("dest", nargs="?", default="copy")
@@ -52,7 +45,14 @@ def _get_reference_parser():
     copy_.add_argument("--recursive", required=True)
     copy_.add_argument("--verbose", default=False, required=False)
     copy_.set_defaults(_func=copy)
+    
+    repeat_ = subp.add_parser("repeat")
+    repeat_.add_argument("n")
+    repeat_.add_argument("--horizontal", default=False)
+    repeat_.set_defaults(_func=repeat)
 
+    test_ = subp.add_parser("test")
+    test_.set_defaults(_func=test)
 
     return parser
 
