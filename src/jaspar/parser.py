@@ -31,11 +31,12 @@ def create_argument(
     elif arg_type == CmdLineArgType.FLAG:
         parser.add_argument("--" + name, **options)
     else:
-        g = parser.add_mutually_exclusive_group(required=options.get("required", False))
+        g = parser.add_mutually_exclusive_group(
+            required=options.get("required", False))
         options.pop("required", None)
         g.add_argument("--" + name, action=A.StoreOnce, **options)
         g.add_argument(name, nargs="?", action=A.StoreOnce, **options)
-        
+
 
 def parse_parameter(
     parser: ArgumentParser,
@@ -79,7 +80,9 @@ def parse_parameter(
     options['default'] = None if not has_default else param.default
     options['required'] = not has_default
 
-    if param.kind == _ParameterKind.VAR_POSITIONAL:
+    if param.kind == _ParameterKind.VAR_POSITIONAL and C.POSITIONAL_OR_KEYWORD_MODE == C.PositionalOrKeywordMode.SMART_COMPROMISE:
+        options['nargs'] = '+'
+    elif param.kind == _ParameterKind.VAR_POSITIONAL:
         options['nargs'] = '*'
 
     create_argument(parser, arg_type, name, **options)
@@ -118,6 +121,7 @@ def parse_subcommand_function(subparsers: ArgumentParser, f: Callable):
 
     return subparsers
 
+
 def parse_function(
     parser: ArgumentParser,
     subparsers: Optional[ArgumentParser],
@@ -127,7 +131,7 @@ def parse_function(
     if f.__name__ in C.MAIN_FUNCTION_NAMES or main:
         parse_main_function(parser, f)
         return parser
-    
+
     parse_subcommand_function(subparsers, f)
 
 
@@ -135,35 +139,35 @@ def _get_functions_generator(module):
     def generator():
         functions = (obj for _, obj in inspect.getmembers(module))
         functions = filter(inspect.isfunction, functions)
-        functions = filter(lambda f: not re.match(C.IGNORE_REGEX, f.__name__), functions)
-        functions = filter(lambda f: f.__module__ == module.__name__, functions)
+        functions = filter(lambda f: not re.match(
+            C.IGNORE_REGEX, f.__name__), functions)
+        functions = filter(lambda f: f.__module__ ==
+                           module.__name__, functions)
 
         return functions
 
     return generator
 
+
 def parse_module(module) -> ArgumentParser:
     functions = _get_functions_generator(module)
 
-    has_subcommands = any(f.__name__ not in C.MAIN_FUNCTION_NAMES for f in functions())
+    has_subcommands = any(
+        f.__name__ not in C.MAIN_FUNCTION_NAMES for f in functions())
     parser = ArgumentParser()
 
-    signatures = dict((f.__module__ + "." + f.__name__, inspect.signature(f)) for f in functions())
+    signatures = dict((f.__module__ + "." + f.__name__,
+                      inspect.signature(f)) for f in functions())
 
     subparsers = None
     if has_subcommands:
-        has_default = any(f.__name__ in C.MAIN_FUNCTION_NAMES for f in functions())
-        options = {}
+        has_default = any(
+            f.__name__ in C.MAIN_FUNCTION_NAMES for f in functions())
+        options = {'dest': '_command'}
         if not has_default:
             options['required'] = True
-            options['dest'] = "command"
         subparsers = parser.add_subparsers(**options)
     for f in functions():
         parse_function(parser, subparsers, f)
 
     return parser, signatures
-
-
-
-    
-
