@@ -139,6 +139,7 @@ class VarPosAndKwReq(SignatureTestCase):
 class PositionalAndKwReq(SignatureTestCase):
     @staticmethod
     def signature(a, b, *, c):
+        # TODO: think abou this case. maybe a and b should be positional and kw since there is an explicit kw-only in the signature?
         pass
 
     @staticmethod
