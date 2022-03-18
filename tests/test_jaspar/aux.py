@@ -39,9 +39,10 @@ def compare_parsers(parser: ArgumentParser, reference: ArgumentParser, inputs: L
         ref_captured = capfd.readouterr()
         with pytest.raises(SystemExit):
             parser.parse_args(inputs)
-            assert capfd.readouterr() == ref_captured
+            captured = capfd.readouterr()
+            assert captured == ref_captured, f"{ref_captured[0]}\n\t+++\n{ref_captured[1]}\n\n -- is not --\n\n{captured[0]}\n\t+++\n{captured[1]}"
         return
 
     args = parser.parse_args(inputs)
 
-    assert reference_args == args
+    assert reference_args == args, f"{reference_args} != {args}"
