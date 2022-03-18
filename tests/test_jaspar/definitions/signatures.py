@@ -81,7 +81,7 @@ class VarPos(SignatureTestCase):
 
     def get_reference_parser():
         parser = ArgumentParser()
-        parser.add_argument("a", nargs="*")
+        parser.add_argument("a", nargs="+")
 
         return parser
 
@@ -110,7 +110,7 @@ class VarPosAndKwOpt(SignatureTestCase):
 
     def get_reference_parser():
         parser = ArgumentParser()
-        parser.add_argument("a", nargs="*")
+        parser.add_argument("a", nargs="+")
         parser.add_argument("--b", default="test")
 
         return parser
@@ -123,7 +123,7 @@ class VarPosAndKwReq(SignatureTestCase):
 
     def get_reference_parser():
         parser = ArgumentParser()
-        parser.add_argument("a", nargs="*")
+        parser.add_argument("a", nargs="+")
         parser.add_argument("--b", required=True)
 
         return parser
