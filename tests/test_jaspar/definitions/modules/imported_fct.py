@@ -12,7 +12,7 @@ def test(msg=""):
 
 def _get_reference_parser():
     parser = ArgumentParser()
-    subparsers = parser.add_subparsers(required=True)
+    subparsers = parser.add_subparsers(dest="_command", required=True)
 
     test_p = subparsers.add_parser("test")
     test_p.add_argument("--msg", default="")

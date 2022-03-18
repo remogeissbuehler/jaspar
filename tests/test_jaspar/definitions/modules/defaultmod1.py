@@ -21,6 +21,7 @@ def _get_reference_parser():
     parser = ArgumentParser()
     parser.add_argument("args", nargs="+")
     parser.add_argument("--verbose", default=False)
+    parser.set_defaults(_func=default)
 
     return parser
     

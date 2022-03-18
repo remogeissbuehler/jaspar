@@ -19,6 +19,7 @@ def _get_reference_parser():
     parser.add_argument("--dest", default="out/")
     parser.add_argument("--silent", default=False)
     parser.add_argument("--verbose", default=False)
+    parser.set_defaults(_func=main)
 
     return parser
 

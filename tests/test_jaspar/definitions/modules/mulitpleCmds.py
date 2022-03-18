@@ -2,6 +2,8 @@ from argparse import ArgumentParser
 import warnings
 import jaspar
 
+import jaspar.actions as A
+
 def test():
     print("=== This is just a test ===")
 
@@ -29,28 +31,65 @@ def copy(source, dest="copy", /, both=False, *, recursive, verbose=False):
 
 def _get_reference_parser():
     parser = ArgumentParser()
-    parser.add_argument("source")
-    parser.add_argument("dest", nargs="?", default="copy")
 
-    group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("both", nargs="?", default=False)
-    group.add_argument("--both", required=False, default=False)
+    subp = parser.add_subparsers(required=True, dest="_command") 
+    test_ = subp.add_parser("test")
+    test_.set_defaults(_func=test)
 
-    parser.add_argument("--recursive", required=True)
-    parser.add_argument("--verbose", default=True)
+    repeat_ = subp.add_parser("repeat")
+    repeat_.add_argument("n")
+    repeat_.add_argument("--horizontal", default=False)
+    repeat_.set_defaults(_func=repeat)
+
+    copy_ = subp.add_parser("copy")
+    copy_.add_argument("source")
+    copy_.add_argument("dest", nargs="?", default="copy")
+
+    g1 = copy_.add_mutually_exclusive_group(required=False)
+    g1.add_argument("both", nargs="?", default=False, action=A.StoreOnce)
+    g1.add_argument("--both", default=False, action=A.StoreOnce)
+
+    copy_.add_argument("--recursive", required=True)
+    copy_.add_argument("--verbose", default=False, required=False)
+    copy_.set_defaults(_func=copy)
+
 
     return parser
 
+# TODO: fix inputs here
+test_inputs = [
+    ["test"],
 
-INPUTS = [ 
-    ["src", "--recursive=False"],
-    ["src", "dst", "--recursive", "True"],
-    ["src", "--both", "True", "--recursive=1"],
-    ["src", "dst", "both", "--recursive", "False"],
-
-    ["src", "--dest", "somePlace", "--recursive"],
-    ["src"]
+    ["test", "--with-a-flag"]
 ]
+
+repeat_inputs = [ 
+    ["repeat", "5"],
+    ["repeat", "--horizontal=True", "7"],
+    ["repeat", "3", "--horizontal", "True"],
+
+    ["repeat"]
+]
+
+
+copy_inputs = [ 
+    ["copy", "src", "--recursive=False"],
+    ["copy", "src", "dst", "--recursive", "True"],
+    ["copy", "src", "--both", "True", "--recursive=1"],
+    ["copy", "src", "dst", "both", "--recursive", "False"],
+
+    ["copy", "src", "--dest", "somePlace", "--recursive"],
+    ["copy", "src"]
+]
+
+
+gen_inputs = [
+    ["src", "dest"],
+    ["25"],
+    ["_nocmdforthat"]
+]
+
+INPUTS = test_inputs + repeat_inputs + copy_inputs + gen_inputs
 
 
 def _nocmdforthat():
