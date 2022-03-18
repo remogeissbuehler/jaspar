@@ -32,7 +32,11 @@ def hasattrs(obj, *attrs):
     return True
 
 
-def compare_parsers(parser: ArgumentParser, reference: ArgumentParser, inputs: List[str], capfd):
+def _format_capfd(ref, cap) -> str:
+    return f"{ref[0]}\n\t+++\n{ref[1]}\n\n -- is not --\n\n{cap[0]}\n\t+++\n{cap[1]}"
+
+
+def compare_parsed_args(parser: ArgumentParser, reference: ArgumentParser, inputs: List[str], capfd):
     try:
         reference_args = reference.parse_args(inputs)
     except SystemExit:
@@ -40,9 +44,19 @@ def compare_parsers(parser: ArgumentParser, reference: ArgumentParser, inputs: L
         with pytest.raises(SystemExit):
             parser.parse_args(inputs)
             captured = capfd.readouterr()
-            assert captured == ref_captured, f"{ref_captured[0]}\n\t+++\n{ref_captured[1]}\n\n -- is not --\n\n{captured[0]}\n\t+++\n{captured[1]}"
+            assert captured == ref_captured, f"{_format_capfd(ref_captured, captured)}"
         return
 
     args = parser.parse_args(inputs)
 
     assert reference_args == args, f"{reference_args} != {args}"
+
+
+def compare_help_strings(parser: ArgumentParser, reference: ArgumentParser, capfd):
+    reference.print_help()
+    ref = capfd.readouterr()
+
+    parser.print_help()
+    actual = capfd.readouterr()
+
+    assert ref == actual, _format_capfd(ref, actual)

@@ -16,7 +16,7 @@ def test_parse_signature(signature_fct, reference_parser, inputs, capfd):
     signature = inspect.signature(signature_fct)
     parser = jp.parse_signature(ArgumentParser(), signature)
 
-    aux.compare_parsers(parser, reference_parser, inputs, capfd)
+    aux.compare_parsed_args(parser, reference_parser, inputs, capfd)
 
 @pytest.mark.parametrize(
     "signature_fct,reference_parser",
@@ -26,10 +26,4 @@ def test_parse_signature_help_message(signature_fct, reference_parser, capfd):
     signature = inspect.signature(signature_fct)
     parser = jp.parse_signature(ArgumentParser(), signature)
 
-    reference_parser.print_help()
-    ref = capfd.readouterr()
-
-    parser.print_help()
-    actual = capfd.readouterr()
-
-    assert ref == actual
+    aux.compare_help_strings(parser, reference_parser, capfd) 

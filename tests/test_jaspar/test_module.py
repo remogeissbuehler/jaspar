@@ -1,4 +1,5 @@
 import inspect
+from weakref import ref
 
 import pytest
 
@@ -34,4 +35,17 @@ def test_module(module, input, capfd):
     if reference is None:
         pytest.skip()
 
-    aux.compare_parsers(parser, reference, input, capfd)
+    aux.compare_parsed_args(parser, reference, input, capfd)
+
+@pytest.mark.parametrize(
+    'module',
+    (module for _, module in inspect.getmembers(modules) if inspect.ismodule(module))
+)
+def test_helpstrings(module, capfd):
+    parser, _ = jp.parse_module(module)
+    reference = module._get_reference_parser()
+
+    if reference is None:
+        pytest.skip()
+    
+    aux.compare_help_strings(parser, reference, capfd)
