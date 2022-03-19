@@ -239,7 +239,7 @@ class PositionalAndOptPos(SignatureTestCase):
 
 class PositionalOptPosAndKw(SignatureTestCase):
     @staticmethod
-    def signature(source, dest="out/", /, opt=25, *, kwonly, kwonly_opt="alreadythere"):
+    def signature(source, dest="out/", /, opt="25", *, kwonly, kwonly_opt="alreadythere"):
         pass 
 
     def get_reference_parser():
