@@ -11,6 +11,7 @@ input_everywhere = [
     [],
 ]
 
+
 class BasicNumbers(SignatureTestCase):
     @staticmethod
     def signature(num: int, pi=3.14):
@@ -43,17 +44,20 @@ class BasicBoolFlags(SignatureTestCase):
     @staticmethod
     def get_reference_parser():
         parser = ArgumentParser()
-        parser.add_argument("--some-flag", action="store_true", dest="some_flag")
-        parser.add_argument("--no-some-flag", action="store_false", dest="some_flag")
+        parser.add_argument(
+            "--some-flag", action="store_true", dest="some_flag")
+        parser.add_argument(
+            "--no-some-flag", action="store_false", dest="some_flag")
         parser.set_defaults(some_flag=True)
 
         parser.add_argument("--verbose", action="store_true", dest="verbose")
-        parser.add_argument("--no-verbose", action="store_false", dest="verbose")
+        parser.add_argument(
+            "--no-verbose", action="store_false", dest="verbose")
         parser.set_defaults(verbose=False)
 
         return parser
 
-    inputs = [ 
+    inputs = [
         ["--some-flag"],
         ["--no-some-flag"],
         ["--verbose"],
@@ -61,22 +65,24 @@ class BasicBoolFlags(SignatureTestCase):
         ["--no-some-flag", "--verbose"]
     ]
 
+
 class BoolPositional(SignatureTestCase):
     @staticmethod
     def signature(exec: bool):
-        pass 
+        pass
 
     @staticmethod
     def get_reference_parser():
         parser = ArgumentParser()
         parser.add_argument("exec", type=jT.str2bool)
 
-        return parser 
+        return parser
 
-    inputs = [ 
+    inputs = [
         ["True"], ["yes"], ["on"],
         ["False"], ["no"], ["off"]
     ]
+
 
 class BoolKwRequired(SignatureTestCase):
     @staticmethod
@@ -89,7 +95,15 @@ class BoolKwRequired(SignatureTestCase):
         parser.add_argument("--required-flag", required=True, type=jT.str2bool)
 
         return parser
-        
+
+    inputs = [
+        ["--required-flag=True"],
+        ["--required-flag", "False"],
+        ["--required-flag=no"],
+
+        ["--required-flag"]
+    ]
+
 
 testcases = [case for case in globals().values()]
 
