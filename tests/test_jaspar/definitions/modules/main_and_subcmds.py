@@ -11,7 +11,7 @@ def main(source="src", target="out/", verbose=False):
     print(f"{target=}")
 
     if verbose:
-        print("==/ Function Main  ==")
+        print("==/ Function Main /==")
 
 # def main():
 #     print("== Function Main == ")

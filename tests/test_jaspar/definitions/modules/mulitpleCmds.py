@@ -30,6 +30,9 @@ def copy(source, dest="copy", /, both=False, *, recursive, verbose=False):
 
 
 def _get_reference_parser():
+
+    # TODO: adapt for new typing specs
+
     parser = ArgumentParser()
 
     subp = parser.add_subparsers(required=True, dest="_command") 
