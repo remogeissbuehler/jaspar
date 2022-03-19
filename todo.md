@@ -11,16 +11,18 @@
 - [ ] add support for type annotations
 - [ ] add default behaviour for bools (store_true)
 - [ ] add support for `**kwargs` varargs (via custom action)
-- [ ] maybe add support for config via custom jaspar type hints:
+- [ ] maybe add support for config via custom jaspar type hints / general types
 ```python
 from jaspar.typehintconfig import NotRequired, Action, Choice
+from typing import Literal
 
 class MyCustomAction(argparse.Action):
     ...
 
 def foo(bar: NotRequired[str], 
         baz: Action[MyCustomAction],
-        greeting: Choice("hello", "goodbye")):
+        greeting: Choice("hello", "goodbye"),
+        name: Literal["Alice", "Bob"]):
     pass
 ```
 
