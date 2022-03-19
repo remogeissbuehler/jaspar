@@ -17,8 +17,15 @@ def _get_reference_parser():
     parser = ArgumentParser()
     parser.add_argument("source")
     parser.add_argument("--dest", default="out/")
-    parser.add_argument("--silent", default=False)
-    parser.add_argument("--verbose", default=False)
+
+    parser.add_argument("--silent", action='store_true')
+    parser.add_argument("--no-silent", action='store_false', dest='silent')
+    parser.set_defaults(silent=False)
+
+    parser.add_argument("--verbose", action='store_true')
+    parser.add_argument("--no-verbose", action='store_false', dest='verbose')
+    parser.set_defaults(verbose=False)
+
     parser.set_defaults(_func=main)
 
     return parser

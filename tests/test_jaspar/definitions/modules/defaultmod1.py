@@ -1,14 +1,17 @@
+from tabnanny import verbose
 import jaspar
 from argparse import ArgumentParser
 
 
 INPUTS = [
-    ["--verbose", "True"],
-    ["1", "2", "3", "--verbose=False"],
-    ["--verbose=True", "abc", "def"],
-    ["xyz", "anotherone"],
-
     ["source", "--verbose"],
+    ["arg1", "arg2", "--no-verbose"],
+    ["xyz", "anotherone"],
+    ["--verbose"]
+
+    ["--verbose", "True"],
+    ["--verbose=True", "abc", "def"],
+    ["1", "2", "3", "--verbose=False"],
 ]
 
 
@@ -20,7 +23,10 @@ def default(*args, verbose=False):
 def _get_reference_parser():
     parser = ArgumentParser()
     parser.add_argument("args", nargs="+")
-    parser.add_argument("--verbose", default=False)
+    parser.add_argument("--verbose", action='store_true', dest='verbose')
+    parser.add_argument("--no-verbose", action="store_false", dest='verbose')
+    
+    parser.set_defaults(verbose=False)
     parser.set_defaults(_func=default)
 
     return parser
