@@ -248,8 +248,9 @@ class PositionalOptPosAndKw(SignatureTestCase):
         parser.add_argument("dest", nargs="?", default="out/")
 
         group = parser.add_mutually_exclusive_group()
-        group.add_argument("opt", nargs="?", default=25, action=A.StoreOnce)
-        group.add_argument("--opt", default=25, action=A.StoreOnce)
+        group.add_argument("opt", nargs="?", action=A.StoreOnce)
+        group.add_argument("--opt", action=A.StoreOnce)
+        group.set_defaults(opt='25')
 
         parser.add_argument("--kwonly", required=True)
         parser.add_argument("--kwonly-opt", default="alreadythere")

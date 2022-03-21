@@ -7,7 +7,7 @@ INPUTS = [
     ["source", "--verbose"],
     ["arg1", "arg2", "--no-verbose"],
     ["xyz", "anotherone"],
-    ["--verbose"]
+    ["--verbose"],
 
     ["--verbose", "True"],
     ["--verbose=True", "abc", "def"],
