@@ -3,6 +3,7 @@ import warnings
 import jaspar
 
 import jaspar.actions as A
+import jaspar.types as T
 
 def test():
     print("=== This is just a test ===")
@@ -41,17 +42,25 @@ def _get_reference_parser():
     copy_.add_argument("source")
     copy_.add_argument("dest", nargs="?", default="copy")
 
+    # TODO: what should this mean aaah
     g1 = copy_.add_mutually_exclusive_group(required=False)
-    g1.add_argument("both", nargs="?", default=False, action=A.StoreOnce)
-    g1.add_argument("--both", default=False, action=A.StoreOnce)
+    g1.add_argument("both", nargs="?", action=A.StoreOnce, type=T.str2bool)
+    g11 = g1.add_mutually_exclusive_group()
+    g11.add_argument("--both", action=A.StoreTrueOnce)
+    g11.add_argument("--no-both", action=A.StoreFalseOnce, dest='both')
+    g1.set_defaults(both=False)
 
     copy_.add_argument("--recursive", required=True)
-    copy_.add_argument("--verbose", default=False, required=False)
-    copy_.set_defaults(_func=copy)
+    g2 = copy_.add_mutually_exclusive_group()
+    g2.add_argument("--verbose", action="store_true")
+    g2.add_argument("--no-verbose", dest='verbose', action="store_false")
+    g2.set_defaults(_func=copy, verbose=False)
     
     repeat_ = subp.add_parser("repeat")
-    repeat_.add_argument("n")
-    repeat_.add_argument("--horizontal", default=False)
+    repeat_.add_argument("n", type=int)
+    g = repeat_.add_mutually_exclusive_group()
+    g.add_argument("--horizontal", default=False, action='store_true')
+    g.add_argument("--no-horizontal", dest='horizontal', action='store_false')
     repeat_.set_defaults(_func=repeat)
 
     test_ = subp.add_parser("test")

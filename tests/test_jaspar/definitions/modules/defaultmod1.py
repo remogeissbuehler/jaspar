@@ -23,8 +23,9 @@ def default(*args, verbose=False):
 def _get_reference_parser():
     parser = ArgumentParser()
     parser.add_argument("args", nargs="+")
-    parser.add_argument("--verbose", action='store_true', dest='verbose')
-    parser.add_argument("--no-verbose", action="store_false", dest='verbose')
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--verbose", action='store_true', dest='verbose')
+    group.add_argument("--no-verbose", action="store_false", dest='verbose')
     
     parser.set_defaults(verbose=False)
     parser.set_defaults(_func=default)

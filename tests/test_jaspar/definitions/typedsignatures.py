@@ -14,7 +14,7 @@ input_everywhere = [
 
 class BasicNumbers(SignatureTestCase):
     @staticmethod
-    def signature(num: int, pi=3.14):
+    def signature(num: int, pi: float = 3.14):
         pass
 
     inputs = [

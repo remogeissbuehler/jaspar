@@ -18,13 +18,15 @@ def _get_reference_parser():
     parser.add_argument("source")
     parser.add_argument("--dest", default="out/")
 
-    parser.add_argument("--silent", action='store_true')
-    parser.add_argument("--no-silent", action='store_false', dest='silent')
-    parser.set_defaults(silent=False)
+    groupsilent = parser.add_mutually_exclusive_group()
+    groupsilent.add_argument("--silent", action='store_true')
+    groupsilent.add_argument("--no-silent", action='store_false', dest='silent')
+    groupsilent.set_defaults(silent=False)
 
-    parser.add_argument("--verbose", action='store_true')
-    parser.add_argument("--no-verbose", action='store_false', dest='verbose')
-    parser.set_defaults(verbose=False)
+    groupverbose = parser.add_mutually_exclusive_group()
+    groupverbose.add_argument("--verbose", action='store_true')
+    groupverbose.add_argument("--no-verbose", action='store_false', dest='verbose')
+    groupverbose.set_defaults(verbose=False)
 
     parser.set_defaults(_func=main)
 
