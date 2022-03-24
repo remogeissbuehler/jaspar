@@ -1,4 +1,5 @@
-from enum import Enum
+from abc import ABC
+from enum import Enum, IntFlag
 import inspect
 import itertools
 from argparse import ArgumentParser
@@ -9,9 +10,11 @@ import re
 
 from . import config as C
 from . import actions as A
+from . import types as T
 
+function = type(lambda: None)
 
-class CmdLineArgType(Enum):
+class CmdLineArgType(IntFlag):
     POSTIONAL = 0b01
     FLAG = 0b10
     BOTH = 0b11
@@ -28,8 +31,19 @@ def create_argument(
             options['nargs'] = '?'
 
         parser.add_argument(name, **options)
+    
+    elif arg_type & CmdLineArgType.FLAG and options.get("default", None) in [True, False] and 'action' not in options:
+        options['dest'] = name.replace("-", "_")
+        parser.set_defaults(**{ options['dest']: options.pop('default')})
+
+        group = parser.add_mutually_exclusive_group(required=options.pop("required", False))
+        group.add_argument("--" + name, action="store_true",  **options)
+        group.add_argument("--no-" + name, action="store_false", **options)
+
     elif arg_type == CmdLineArgType.FLAG:
         parser.add_argument("--" + name, **options)
+
+
     else:
         g = parser.add_mutually_exclusive_group(
             required=options.get("required", False))
@@ -38,11 +52,21 @@ def create_argument(
         g.add_argument(name, nargs="?", action=A.StoreOnce, **options)
 
 
+def parse_annotation(param: inspect.Parameter, options):
+    annotation = param.annotation
+    if annotation in [int, float, str] or isinstance(annotation, function):
+        options['type'] = annotation
+
+    if annotation == bool and param.default == inspect._empty:
+        options['type'] = T.str2bool
+
+    return options
+
+    
 def parse_parameter(
     parser: ArgumentParser,
     param: inspect.Parameter,
-    create_both: bool
-) -> None:
+    create_both: bool) -> None:
     """Takes the signature of a function and adds the parameters to the parser.
 
     Example: Takes a parameter "b = None" and does `parser.add_argument("--b", default=None)`
@@ -77,13 +101,16 @@ def parse_parameter(
     options = dict()
 
     # take default argument if present
-    options['default'] = None if not has_default else param.default
+    if has_default:
+        options['default'] = param.default
     options['required'] = not has_default
 
     if param.kind == _ParameterKind.VAR_POSITIONAL and C.POSITIONAL_OR_KEYWORD_MODE == C.PositionalOrKeywordMode.SMART_COMPROMISE:
         options['nargs'] = '+'
     elif param.kind == _ParameterKind.VAR_POSITIONAL:
         options['nargs'] = '*'
+
+    options = parse_annotation(param, options)
 
     create_argument(parser, arg_type, name, **options)
 
